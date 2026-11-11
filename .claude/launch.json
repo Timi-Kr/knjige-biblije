@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "knjige", "runtimeExecutable": "node", "runtimeArgs": ["/Users/timotheuskrumm/Desktop/B knjige/.claude/serve.mjs"], "port": 8765 }
+  ]
+}
