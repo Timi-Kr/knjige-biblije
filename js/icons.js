@@ -36,5 +36,5 @@ export const IC = {
   crown: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 8.500 7.500 12 12 5l4.500 7L21 8.500 19.500 19h-15z"/></svg>`,
   moon: `<svg viewBox="0 0 64 64" aria-hidden="true"><path fill="currentColor" d="M40 6a27 27 0 1 0 19 39.500A22 22 0 0 1 40 6z"/></svg>`,
   sun: `<svg viewBox="0 0 64 64" aria-hidden="true"><path fill="currentColor" d="${scallop(32, 32, 27, 8, 0.075)}"/></svg>`,
-  logo: `<svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#1f2a44"/><rect x="8" y="12.500" width="7" height="19" rx="2.200" fill="#c8f03c"/><rect x="16.500" y="7" width="7" height="24.500" rx="2.200" fill="#f3bdfb"/><rect x="25" y="15.500" width="7" height="16" rx="2.200" fill="#fff"/></svg>`,
+  logo: `<svg viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="32" fill="#1f2a44"/><path d="M32 90C32 62 60 78 60 60S88 58 88 30" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="8" stroke-linecap="round"/><circle cx="32" cy="90" r="12" fill="#f3bdfb"/><circle cx="60" cy="60" r="12" fill="#c8f03c"/><path d="M88 12c1.300 9.500 4.800 13 17 18-12.200 5-15.700 8.500-17 18-1.300-9.500-4.800-13-17-18 12.200-5 15.700-8.500 17-18z" fill="#ffc247"/></svg>`,
 };

@@ -11,7 +11,7 @@ const toastEl = document.getElementById('toast');
 const sheetEl = document.getElementById('sheet');
 const themeMeta = document.querySelector('meta[name="theme-color"]');
 let tab = 'home';
-const VERSION = 7; // povećati zajedno s CACHE u sw.js
+const VERSION = 8; // povećati zajedno s CACHE u sw.js
 const PLAIN = ['path', 'practice', 'books']; // tabovi s malim naslovom umjesto obojanog zaglavlja
 const topbar = (title) => `<header class="topbar"><h1>${title}</h1></header>`;
 

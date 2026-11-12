@@ -1,5 +1,5 @@
 // Offline: sve se sprema u cache; prikazuje se spremljeno, a u pozadini osvježava.
-const CACHE = 'bknjige-v7';
+const CACHE = 'bknjige-v8';
 const ASSETS = [
   './', 'index.html', 'manifest.webmanifest', 'css/styles.css',
   'js/app.js', 'js/data.js', 'js/store.js', 'js/exercises.js', 'js/icons.js',
