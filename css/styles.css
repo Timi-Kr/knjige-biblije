@@ -22,8 +22,7 @@ html.night { --sky: var(--navy); --sky-ink: #fff; --cloud: #ffffff12; --orb: var
 html.night { color-scheme: dark; }
 html.plain { --sky: #fff; }
 /* Pozadina bodyja = boja neba: iOS njome boji područje statusne trake. */
-html, body { height: 100%; }
-body { margin: 0 auto; max-width: 520px; overflow: hidden; background: var(--sky); color: var(--ink);
+body { margin: 0 auto; max-width: 520px; min-height: 100dvh; background: var(--sky); color: var(--ink);
   font: 400 17px/1.4 var(--body); display: flex; flex-direction: column; }
 body.in-session { overflow: hidden; background: var(--plum); }
 body.sheet-open { overflow: hidden; }
@@ -32,9 +31,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--blue); outl
 h1, h2, h3, p, ol { margin: 0; }
 ol { padding: 0; list-style: none; }
 svg { display: block; }
-/* Skrola #app, ne dokument: iOS svoje zamućenje uz statusnu traku veže za skrolanje dokumenta. */
-#app { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; background: var(--sky); }
-#app > * { flex-shrink: 0; }
+#app { flex: 1; display: flex; flex-direction: column; }
 
 /* ---- Hero ---- */
 .hero { position: relative; background: var(--sky); color: var(--sky-ink); text-align: center; padding: calc(var(--top) + 18px) 22px 64px; }
@@ -68,7 +65,7 @@ svg { display: block; }
 .sheet.flat > .note:first-child { margin: 0 0 6px; text-align: center; }
 
 /* ---- Sheet & kartice ---- */
-.sheet { position: relative; z-index: 1; flex: 1 0 auto; background: #fff; border-radius: 28px 28px 0 0; margin-top: -28px; padding: 26px 20px calc(120px + var(--bot)); }
+.sheet { position: relative; z-index: 1; flex: 1; background: #fff; border-radius: 28px 28px 0 0; margin-top: -28px; padding: 26px 20px calc(120px + var(--bot)); }
 .sheet h2 { font: 400 34px/1.1 var(--display); margin: 22px 0 14px; }
 .sheet h2:first-child { margin-top: 4px; }
 .card { display: flex; align-items: center; gap: 12px; width: 100%; background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 12px; }

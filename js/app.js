@@ -293,7 +293,7 @@ function viewMe() {
 const VIEWS = { home: viewHome, path: viewPath, practice: viewPractice, books: viewBooks, me: viewMe };
 
 function render(keepScroll = false) {
-  const y = app.scrollTop;
+  const y = window.scrollY;
   applySky();
   app.innerHTML = VIEWS[tab]();
   if (!tabsEl.children.length) {
@@ -306,7 +306,7 @@ function render(keepScroll = false) {
     b.classList.toggle('on', on);
     if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   }
-  app.scrollTop = keepScroll ? y : 0;
+  window.scrollTo(0, keepScroll ? y : 0);
   if (keepScroll) return;
   if (tab === 'path') app.querySelector('.pn.open, .pn.tomorrow')?.scrollIntoView({ block: 'center' });
 }
