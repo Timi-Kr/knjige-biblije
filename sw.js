@@ -1,5 +1,5 @@
 // Offline: sve se sprema u cache; prikazuje se spremljeno, a u pozadini osvježava.
-const CACHE = 'bknjige-v5';
+const CACHE = 'bknjige-v6';
 const ASSETS = [
   './', 'index.html', 'manifest.webmanifest', 'css/styles.css',
   'js/app.js', 'js/data.js', 'js/store.js', 'js/exercises.js', 'js/icons.js',
@@ -9,7 +9,7 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {

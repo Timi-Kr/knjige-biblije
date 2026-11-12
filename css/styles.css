@@ -119,6 +119,8 @@ button.card:active { transform: scale(.98); }
 .acts { display: flex; gap: 8px; margin-top: 12px; }
 .pill { flex: 1; text-align: center; white-space: nowrap; border-radius: 99px; padding: 14px 10px; font-size: 16px; font-weight: 700; background: #fff; box-shadow: inset 0 0 0 1.5px var(--ink); }
 .pill.dark { background: var(--ink); color: #fff; }
+.pill[data-update] { display: block; width: 100%; margin-top: 16px; }
+.note.ver { text-align: center; margin: 8px 0 0; }
 .pill.danger { display: block; width: 100%; margin-top: 16px; color: var(--bad); box-shadow: inset 0 0 0 1.5px var(--bad); }
 .blist { margin-bottom: 18px; }
 .blist h3 { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: var(--mute); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }

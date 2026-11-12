@@ -11,6 +11,7 @@ const toastEl = document.getElementById('toast');
 const sheetEl = document.getElementById('sheet');
 const themeMeta = document.querySelector('meta[name="theme-color"]');
 let tab = 'home';
+const VERSION = 6; // povećati zajedno s CACHE u sw.js
 const PLAIN = ['path', 'practice', 'books']; // tabovi s malim naslovom umjesto obojanog zaglavlja
 const topbar = (title) => `<header class="topbar"><h1>${title}</h1></header>`;
 
@@ -286,6 +287,8 @@ function viewMe() {
     <h2>Postavke</h2>
     <label class="card toggle"><span class="txt"><b>Više lekcija dnevno</b><span>Bez čekanja do sutra na novu lekciju</span></span>
       <input type="checkbox" data-free ${s.settings.free ? 'checked' : ''}><i></i></label>
+    <button class="pill" data-update>Ažuriraj aplikaciju</button>
+    <p class="note ver">Verzija ${VERSION}</p>
     <button class="pill danger" data-reset>Obriši sav napredak</button>
   </main>`;
 }
@@ -337,9 +340,10 @@ function startNode(id) {
 }
 
 document.addEventListener('click', (e) => {
-  const t = e.target.closest('[data-tab],[data-act],[data-node],[data-quiz],[data-type],[data-reset],[data-streak]');
+  const t = e.target.closest('[data-tab],[data-act],[data-node],[data-quiz],[data-type],[data-reset],[data-streak],[data-update]');
   if (!t || t.closest('#session')) return;
   if ('streak' in t.dataset) return openStreak();
+  if ('update' in t.dataset) return forceUpdate(t);
   if (t.dataset.tab) { tab = t.dataset.tab; return render(); }
   if (t.dataset.node) return startNode(t.dataset.node);
   if ('act' in t.dataset) {
@@ -373,6 +377,32 @@ document.addEventListener('visibilitychange', () => {
 
 render();
 
+// Ručno ažuriranje: obriše spremljene datoteke aplikacije i učita svježe. Napredak (localStorage) ostaje.
+async function forceUpdate(btn) {
+  btn.disabled = true;
+  btn.textContent = 'Ažuriram…';
+  try {
+    const res = await fetch(`./sw.js?${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) throw new Error('offline');
+    if ('caches' in window) await Promise.all((await caches.keys()).map((k) => caches.delete(k)));
+    if ('serviceWorker' in navigator) {
+      await Promise.all((await navigator.serviceWorker.getRegistrations()).map((r) => r.unregister()));
+    }
+    location.reload();
+  } catch {
+    btn.disabled = false;
+    btn.textContent = 'Ažuriraj aplikaciju';
+    toast('Nema veze s internetom');
+  }
+}
+
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('./sw.js').catch(() => {});
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).catch(() => {});
+  // Kad nova verzija preuzme, odmah je učitaj (ne usred lekcije).
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloading || !document.getElementById('session').hidden) return;
+    reloading = true;
+    location.reload();
+  });
 }
