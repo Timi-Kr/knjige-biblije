@@ -19,7 +19,8 @@ const fresh = () => ({
   done: {},            // id čvora -> datum prvog završetka
   lastNewDay: null,    // dan kad je zadnji put naučena nova lekcija
   books: {},           // indeks knjige -> { box, due }
-  streak: { count: 0, last: null },
+  streak: { count: 0, last: null, best: 0 },
+  days: null,          // datum -> 1 (nešto riješeno) | 2 (dnevni plan ispunjen)
   day: { date: null, lesson: false, review: false, challenge: false },
   groups: {},          // id skupine -> { stars, crown, typedDay }
   settings: { free: false },
@@ -30,12 +31,19 @@ try {
   const raw = localStorage.getItem(KEY);
   if (raw) state = { ...fresh(), ...JSON.parse(raw) };
 } catch { /* bez spremljenog stanja */ }
+if (!state.days) { // starije spremljeno stanje: povijest iz onoga što znamo
+  state.days = {};
+  for (const d of Object.values(state.done)) state.days[d] = 1;
+  const { count, last } = state.streak;
+  for (let k = 0; last && k < count; k++) state.days[addDays(last, -k)] = 2;
+}
+state.streak.best = Math.max(state.streak.best || 0, state.streak.count || 0);
 
 export const save = () => {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* privatni način */ }
 };
 export const get = () => state;
-export const reset = () => { state = fresh(); save(); };
+export const reset = () => { state = fresh(); state.days = {}; save(); };
 
 function rollDay() {
   if (state.day.date !== today()) {
@@ -82,7 +90,22 @@ function bumpStreak() {
   if (state.streak.last === t) return false;
   state.streak.count = state.streak.last === addDays(t, -1) ? state.streak.count + 1 : 1;
   state.streak.last = t;
+  state.streak.best = Math.max(state.streak.best || 0, state.streak.count);
   return true;
+}
+
+export const dayLevel = (d) => state.days[d] || 0;
+export const bestStreak = () => Math.max(state.streak.best || 0, currentStreak());
+export function perfectWeeks() {
+  let n = 0;
+  for (const d of Object.keys(state.days)) {
+    const [y, m, dd] = d.split('-').map(Number);
+    if (new Date(y, m - 1, dd).getDay() !== 1) continue; // tjedan počinje ponedjeljkom
+    let ok = true;
+    for (let k = 0; k < 7 && ok; k++) ok = state.days[addDays(d, k)] === 2;
+    if (ok) n++;
+  }
+  return n;
 }
 
 // ---- Ponavljanje ----
@@ -145,6 +168,7 @@ export function finishSession(session, outcome) {
   }
   let streakUp = false;
   if (dayComplete() && !wasComplete) streakUp = bumpStreak();
+  state.days[t] = state.streak.last === t ? 2 : Math.max(state.days[t] || 0, 1);
   save();
   return { streakUp, dayDone: dayComplete() };
 }

@@ -8,7 +8,23 @@ import {
 const app = document.getElementById('app');
 const tabsEl = document.getElementById('tabs');
 const toastEl = document.getElementById('toast');
+const sheetEl = document.getElementById('sheet');
+const themeMeta = document.querySelector('meta[name="theme-color"]');
 let tab = 'home';
+
+// Dan / noć: po danu svijetlo nebo sa suncem, navečer tamno s mjesecom.
+const forcedSky = new URLSearchParams(location.search).get('sky');
+function isNight() {
+  if (forcedSky) return forcedSky === 'night';
+  const h = new Date().getHours();
+  return h >= 19 || h < 6;
+}
+function applySky() {
+  const night = isNight();
+  document.documentElement.classList.toggle('night', night);
+  themeMeta.content = document.body.classList.contains('in-session') ? '#4a3550' : night ? '#1f2a44' : '#fdf0e1';
+  return night;
+}
 
 const TABS = [
   ['home', 'Početna', IC.home], ['path', 'Put', IC.path], ['practice', 'Vježba', IC.spark],
@@ -38,7 +54,7 @@ const hero = (title, sub = '') => `
   </header>`;
 const streakPill = () => {
   const n = store.currentStreak();
-  return `<span class="streak ${n ? 'on' : ''}" aria-label="Niz: ${n} dana">${IC.flame}<b>${n}</b></span>`;
+  return `<button class="streak ${n ? 'on' : ''}" data-streak aria-label="Niz: ${n} dana. Otvori pregled niza">${IC.flame}<b>${n}</b></button>`;
 };
 
 // ---------- Početna ----------
@@ -47,8 +63,7 @@ function viewHome() {
   const tasks = store.dayTasks();
   const nx = store.nextNode();
   const st = nx ? store.nodeStatus(nx) : null;
-  const h = new Date().getHours();
-  const night = h >= 19 || h < 6;
+  const night = isNight();
 
   let lesson;
   if (!nx) lesson = { title: 'Sve lekcije završene', sub: 'Ponavljaj da ostane u glavi', act: '' };
@@ -78,6 +93,7 @@ function viewHome() {
   return `
   <header class="hero">
     <div class="hero-row"><span class="logo">${IC.logo}</span>${streakPill()}</div>
+    ${SCENE}
     <div class="orb">${night ? IC.moon : IC.sun}</div>
     <p class="eyebrow">Znaš po redu</p>
     <h1>${known} <span>/ 66</span></h1>
@@ -98,6 +114,12 @@ function viewHome() {
   </main>`;
 }
 
+// Oblaci (i zvijezde noću) iza sunca / mjeseca.
+const SCENE = `<svg class="scene" viewBox="0 0 390 110" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <g class="cloud" stroke-width="15" stroke-linecap="round"><path d="M88 22h36M34 50h70M20 76h10M58 76h44"/><path d="M294 24h66M318 50h44M278 50h10M308 74h14"/></g>
+  <g class="stars"><circle cx="150" cy="16" r="2"/><circle cx="248" cy="30" r="1.600"/><circle cx="132" cy="84" r="1.600"/><circle cx="262" cy="88" r="2"/><circle cx="200" cy="4" r="1.400"/></g>
+</svg>`;
+
 const artSvg = {
   'a-lesson': `<svg viewBox="0 0 80 60" aria-hidden="true"><rect x="8" y="14" width="16" height="40" rx="4" fill="#c8f03c"/><rect x="28" y="6" width="16" height="48" rx="4" fill="#f3bdfb"/><rect x="48" y="20" width="16" height="34" rx="4" fill="#1f2a44"/></svg>`,
   'a-review': `<svg viewBox="0 0 80 60" aria-hidden="true"><circle cx="28" cy="32" r="20" fill="#c8f03c"/><path d="M19 32q4 5 8 0M31 32q4 5 8 0" stroke="#1f2a44" stroke-width="2.500" fill="none" stroke-linecap="round"/><rect x="48" y="30" width="26" height="22" rx="6" fill="#0f8a96"/><path d="M54 40h5M63 40h5" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>`,
@@ -105,25 +127,114 @@ const artSvg = {
 };
 
 // ---------- Put ----------
+const WAVE = [0, 40, 62, 40, 0, -40, -62, -40];
 function viewPath() {
-  const sections = GROUPS.map((g) => {
-    const cards = g.nodes.map((n) => {
+  let k = 0;
+  const sections = GROUPS.map((g, gi) => {
+    const nodes = g.nodes.map((n) => {
       const st = store.nodeStatus(n);
-      const badge = { done: IC.check, open: IC.play, tomorrow: IC.lock, locked: IC.lock }[st];
-      const big = n.kind === 'learn' ? `${n.from + 1}–${n.to}` : IC.star;
-      const cap = n.kind === 'learn' ? names(n.from, n.to).join(', ') : n.title;
+      const type = n.kind === 'learn' ? IC.book : n.big ? IC.crown : IC.star;
+      const icon = st === 'done' ? IC.check : st === 'tomorrow' ? IC.lock : type;
+      const cap = n.kind === 'learn' ? names(n.from, n.to).join(', ').replace(/\. /g, '.\u00a0') : n.title;
+      const label = n.kind === 'learn' ? `Lekcija: ${cap}` : cap;
+      const x = WAVE[k++ % WAVE.length];
+      const bub = st === 'open' ? '<span class="bub">Počni</span>' : st === 'tomorrow' ? '<span class="bub wait">Sutra</span>' : '';
       return `
-        <button class="node ${st} ${n.kind}" data-node="${n.id}" style="--tint:${g.tint}">
-          <span class="tile"><span class="num">${big}</span><span class="badge">${badge}</span></span>
-          <span class="cap">${cap}${st === 'tomorrow' ? '<small>Sutra</small>' : ''}</span>
+        <button class="pn ${st} ${n.kind} ${n.big ? 'big' : ''} ${x < 0 ? 'capr' : 'capl'}" data-node="${n.id}" style="--x:${x}px" aria-label="${label}">
+          ${bub}<span class="coin">${icon}</span><span class="cap">${cap}</span>
         </button>`;
     }).join('');
-    return `<section><div class="sec-head"><h3>${g.name}</h3>${stars(store.groupMastery(g.id))}</div>
-      <div class="scroller">${cards}</div></section>`;
+    return `<section class="unit" style="--tint:${g.tint}">
+      <div class="unit-head"><div><small>Skupina ${gi + 1} · ${g.t === 'SZ' ? 'Stari zavjet' : 'Novi zavjet'}</small><b>${g.name}</b></div>${stars(store.groupMastery(g.id))}</div>
+      <div class="trail">${nodes}</div></section>`;
   }).join('');
   const done = PATH.filter((n) => store.get().done[n.id]).length;
   return hero('Put', `${done} od ${PATH.length} lekcija`) + `<main class="sheet path">${sections}</main>`;
 }
+
+// ---------- Niz (bottom sheet) ----------
+const MONTHS = ['Siječanj', 'Veljača', 'Ožujak', 'Travanj', 'Svibanj', 'Lipanj', 'Srpanj', 'Kolovoz', 'Rujan', 'Listopad', 'Studeni', 'Prosinac'];
+let calY, calM;
+const dana = (n) => `${n} ${plural(n, 'dan', 'dana', 'dana')}`;
+
+function streakSheet() {
+  const n = store.currentStreak();
+  const today = store.today();
+  const doneToday = store.dayLevel(today) === 2;
+  const tip = doneToday ? 'Današnji plan je ispunjen. Niz je siguran do sutra.'
+    : n ? 'Riješi današnji plan da produžiš niz.' : 'Riješi današnji plan i započni niz.';
+
+  const first = new Date(calY, calM, 1);
+  const lead = (first.getDay() + 6) % 7; // ponedjeljak prvi
+  const count = new Date(calY, calM + 1, 0).getDate();
+  const key = (d) => store.dayStr(new Date(calY, calM, d));
+  let cells = '<i></i>'.repeat(lead);
+  for (let d = 1; d <= count; d++) {
+    const ds = key(d), lv = store.dayLevel(ds), col = (lead + d - 1) % 7;
+    const cls = [];
+    if (lv === 2) {
+      cls.push('full');
+      if (d > 1 && col > 0 && store.dayLevel(key(d - 1)) === 2) cls.push('jl');
+      if (d < count && col < 6 && store.dayLevel(key(d + 1)) === 2) cls.push('jr');
+    } else if (lv === 1) cls.push('some');
+    if (ds === today) cls.push('today');
+    if (ds > today) cls.push('future');
+    cells += `<i class="${cls.join(' ')}"><b>${d}</b></i>`;
+  }
+  const now = new Date();
+  const atNow = calY === now.getFullYear() && calM === now.getMonth();
+  const weeks = store.perfectWeeks();
+
+  return `
+  <div class="sh-back" data-close></div>
+  <div class="sh-card" role="dialog" aria-modal="true" aria-label="Pregled niza">
+    <button class="sh-x" data-close aria-label="Zatvori">${IC.close}</button>
+    <div class="sh-top ${n ? 'on' : ''}">
+      <div><b class="sh-num">${n}</b><span class="sh-lab">${plural(n, 'dan', 'dana', 'dana')} zaredom</span></div>${IC.flame}
+    </div>
+    <p class="sh-tip">${IC.bulb}<span>${tip}</span></p>
+    <h3>Kalendar</h3>
+    <div class="cal">
+      <div class="cal-nav">
+        <button data-month="-1" aria-label="Prethodni mjesec">${IC.left}</button>
+        <b>${MONTHS[calM]} ${calY}</b>
+        <button data-month="1" aria-label="Sljedeći mjesec" ${atNow ? 'disabled' : ''}>${IC.right}</button>
+      </div>
+      <div class="cal-grid head">${['P', 'U', 'S', 'Č', 'P', 'S', 'N'].map((d) => `<span>${d}</span>`).join('')}</div>
+      <div class="cal-grid">${cells}</div>
+      <p class="cal-key"><span class="k full"></span>dnevni plan ispunjen<span class="k some"></span>nešto riješeno</p>
+    </div>
+    <div class="sh-stats">
+      <div class="sh-stat">${IC.medal}<div><span>Najduži niz</span><b>${dana(store.bestStreak())}</b></div></div>
+      <div class="sh-stat">${IC.cal}<div><span>Savršeni tjedni</span><b>${weeks}</b></div></div>
+    </div>
+  </div>`;
+}
+function openStreak() {
+  const now = new Date();
+  calY = now.getFullYear(); calM = now.getMonth();
+  sheetEl.innerHTML = streakSheet();
+  sheetEl.hidden = false;
+  document.body.classList.add('sheet-open');
+  requestAnimationFrame(() => sheetEl.classList.add('on'));
+  sheetEl.querySelector('.sh-x').focus({ preventScroll: true });
+}
+function closeStreak() {
+  sheetEl.classList.remove('on');
+  document.body.classList.remove('sheet-open');
+  setTimeout(() => { if (!sheetEl.classList.contains('on')) sheetEl.hidden = true; }, 300);
+}
+sheetEl.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-close],[data-month]');
+  if (!t) return;
+  if ('close' in t.dataset) return closeStreak();
+  const d = new Date(calY, calM + Number(t.dataset.month), 1);
+  calY = d.getFullYear(); calM = d.getMonth();
+  const y = sheetEl.querySelector('.sh-card').scrollTop;
+  sheetEl.innerHTML = streakSheet();
+  sheetEl.querySelector('.sh-card').scrollTop = y;
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !sheetEl.hidden) closeStreak(); });
 
 // ---------- Vježba ----------
 function viewPractice() {
@@ -188,14 +299,26 @@ const VIEWS = { home: viewHome, path: viewPath, practice: viewPractice, books: v
 
 function render(keepScroll = false) {
   const y = window.scrollY;
+  applySky();
   app.innerHTML = VIEWS[tab]();
-  tabsEl.innerHTML = TABS.map(([id, label, icon]) =>
-    `<button data-tab="${id}" class="${id === tab ? 'on' : ''}" ${id === tab ? 'aria-current="page"' : ''}>${icon}<span>${label}</span></button>`).join('');
-  window.scrollTo(0, keepScroll ? y : 0);
+  if (!tabsEl.children.length) {
+    tabsEl.innerHTML = '<i class="ind"></i>' + TABS.map(([id, label, icon]) =>
+      `<button data-tab="${id}">${icon}<span>${label}</span></button>`).join('');
+  }
+  tabsEl.style.setProperty('--i', TABS.findIndex(([id]) => id === tab));
+  for (const b of tabsEl.querySelectorAll('button')) {
+    const on = b.dataset.tab === tab;
+    b.classList.toggle('on', on);
+    if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  }
+  if (keepScroll) return window.scrollTo(0, y);
+  window.scrollTo(0, 0);
+  if (tab === 'path') app.querySelector('.pn.open, .pn.tomorrow')?.scrollIntoView({ block: 'center' });
 }
 
 // ---------- Sesije ----------
 function start(session) {
+  setTimeout(applySky); // nakon što sesija postavi body.in-session
   runSession(session, {
     onFinish(sess, outcome) {
       const r = store.finishSession(sess, outcome);
@@ -219,8 +342,9 @@ function startNode(id) {
 }
 
 document.addEventListener('click', (e) => {
-  const t = e.target.closest('[data-tab],[data-act],[data-node],[data-quiz],[data-type],[data-reset]');
+  const t = e.target.closest('[data-tab],[data-act],[data-node],[data-quiz],[data-type],[data-reset],[data-streak]');
   if (!t || t.closest('#session')) return;
+  if ('streak' in t.dataset) return openStreak();
   if (t.dataset.tab) { tab = t.dataset.tab; return render(); }
   if (t.dataset.node) return startNode(t.dataset.node);
   if ('act' in t.dataset) {
