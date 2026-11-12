@@ -2,7 +2,7 @@ import { BOOKS, GROUPS, PATH, OT_END, names } from './data.js';
 import * as store from './store.js';
 import { IC } from './icons.js';
 import {
-  runSession, lessonSession, checkSession, reviewSession, challengeSession, practiceSession, typeSession,
+  demoEnd, runSession, lessonSession, checkSession, reviewSession, challengeSession, practiceSession, typeSession,
 } from './exercises.js';
 
 const app = document.getElementById('app');
@@ -11,7 +11,7 @@ const toastEl = document.getElementById('toast');
 const sheetEl = document.getElementById('sheet');
 const themeMeta = document.querySelector('meta[name="theme-color"]');
 let tab = 'home';
-const VERSION = 6; // povećati zajedno s CACHE u sw.js
+const VERSION = 7; // povećati zajedno s CACHE u sw.js
 const PLAIN = ['path', 'practice', 'books']; // tabovi s malim naslovom umjesto obojanog zaglavlja
 const topbar = (title) => `<header class="topbar"><h1>${title}</h1></header>`;
 
@@ -376,6 +376,9 @@ document.addEventListener('visibilitychange', () => {
 });
 
 render();
+
+const demoPct = new URLSearchParams(location.search).get('end');
+if (demoPct !== null) demoEnd(Number(demoPct) || 0);
 
 // Ručno ažuriranje: obriše spremljene datoteke aplikacije i učita svježe. Napredak (localStorage) ostaje.
 async function forceUpdate(btn) {

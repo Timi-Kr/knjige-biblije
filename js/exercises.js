@@ -318,19 +318,72 @@ export function runSession(session, { onFinish, onExit }) {
     const perfect = reveals === 0 && pct() === 100;
     const outcome = { pct: pct(), perfect: session.kind === 'type' ? reveals === 0 : perfect, results };
     const info = onFinish(session, outcome) || {};
-    const head = outcome.pct === 100 ? 'Savršeno!' : outcome.pct >= 70 ? 'Bravo!' : 'Gotovo!';
-    root.innerHTML = `
-      <div class="s-end">
-        <div class="burst">${IC.star}</div>
-        <h1>${head}</h1>
-        <p class="big">${outcome.pct}%</p>
-        <p>${info.note || 'točno iz prve'}</p>
-        ${info.streakUp ? `<p class="streak-up">${IC.flame}<b>${info.streak}</b> ${info.streak === 1 ? 'dan' : 'dana'} zaredom</p>` : ''}
-        ${info.extra || ''}
-      </div>
-      <div class="s-panel"><button class="btn-main" data-go>Nastavi</button></div>`;
-    root.querySelector('[data-go]').onclick = () => { close(); onExit(); };
+    renderEnd(root, outcome.pct, info, () => { close(); onExit(); });
   }
 
   show();
+}
+
+// ---- Završni ekran: tri razine (super ≥ 90 %, srednje 60–89 %, slabo < 60 %) ----
+const CONF = ['#c8f03c', '#f3bdfb', '#ffc247', '#4a3550', '#7b4a8c', '#ffffff'];
+function confetti(n, min, max) {
+  let out = '';
+  for (let k = 0; k < n; k++) {
+    const a = (k / n) * Math.PI * 2 + Math.random() * 0.5;
+    const d = min + Math.random() * (max - min);
+    const st = `--dx:${(Math.cos(a) * d).toFixed(0)}px;--dy:${(Math.sin(a) * d * 0.85 - 18).toFixed(0)}px;` +
+      `--r:${Math.round(Math.random() * 540 - 270)}deg;--c:${CONF[k % CONF.length]};--d:${(Math.random() * 0.12).toFixed(2)}s`;
+    out += `<i class="${k % 3 === 0 ? 'dot' : k % 3 === 1 ? 'bar' : ''}" style="${st}"></i>`;
+  }
+  return `<span class="confetti" aria-hidden="true">${out}</span>`;
+}
+
+function renderEnd(root, pct, info, onGo) {
+  const tier = pct >= 90 ? 'top' : pct >= 60 ? 'mid' : 'low';
+  const head = pct === 100 ? 'Savršeno!' : { top: 'Odlično!', mid: 'Dobro je!', low: 'Ide to!' }[tier];
+  const tip = { top: '', mid: '', low: '<p class="end-tip">Ponovi još koji put i sjest će.</p>' }[tier];
+  root.innerHTML = `
+    <div class="s-end ${tier}">
+      <div class="burst-wrap">
+        ${tier === 'top' ? confetti(30, 70, 150) : tier === 'mid' ? confetti(10, 48, 78) : ''}
+        <div class="burst">${tier === 'low' ? IC.spark : IC.star}</div>
+      </div>
+      <h1>${head}</h1>
+      <p class="big" aria-label="${pct}%"><span>0</span>%</p>
+      <p>${info.note || 'točno iz prve'}</p>
+      ${tip}
+      ${info.streakUp ? `<p class="streak-up">${IC.flame}<b>${info.streak}</b> ${info.streak === 1 ? 'dan' : 'dana'} zaredom</p>` : ''}
+      ${info.extra || ''}
+    </div>
+    <div class="s-panel"><button class="btn-main" data-go>Nastavi</button></div>`;
+  root.querySelector('[data-go]').onclick = onGo;
+
+  // Postotak broji od 0 do rezultata.
+  const num = root.querySelector('.big span');
+  const big = num.parentElement;
+  if (!pct || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { num.textContent = pct; return; }
+  const dur = 500 + pct * 7;
+  let t0 = null;
+  const tick = (t) => {
+    if (!num.isConnected) return;
+    t0 ??= t + 350; // pričekaj da zvijezda iskoči
+    const k = Math.min(1, Math.max(0, (t - t0) / dur));
+    num.textContent = Math.round(pct * (1 - (1 - k) ** 3));
+    if (k < 1) requestAnimationFrame(tick); else big.classList.add('landed');
+  };
+  requestAnimationFrame(tick);
+}
+
+// Pregled završnog ekrana bez rješavanja lekcije (?end=95).
+export function demoEnd(pct) {
+  const root = document.getElementById('session');
+  root.hidden = false;
+  document.body.classList.add('in-session');
+  const go = (p) => {
+    renderEnd(root, p, { streakUp: p >= 90, streak: 3 }, () => go(p));
+    root.insertAdjacentHTML('afterbegin', `<div class="demo-bar">${[[35, 'Slabo'], [75, 'Srednje'], [95, 'Super'], [100, '100 %']]
+      .map(([v, l]) => `<button data-p="${v}" class="${v === p ? 'on' : ''}">${l}</button>`).join('')}</div>`);
+    root.querySelector('.demo-bar').onclick = (e) => { if (e.target.dataset.p) go(+e.target.dataset.p); };
+  };
+  go(pct);
 }
