@@ -19,6 +19,8 @@
 html { --sky: #fdf0e1; --sky-ink: #14182a; --cloud: #f0e4d4; --orb: #ffc247; --track: #14182a1f; --fill: var(--navy);
   background: var(--sky); overscroll-behavior-y: none; -webkit-text-size-adjust: 100%; }
 html.night { --sky: var(--navy); --sky-ink: #fff; --cloud: #ffffff12; --orb: var(--lime); --track: #ffffff26; --fill: var(--lime); }
+html.night { color-scheme: dark; }
+html.plain { --sky: #fff; }
 /* Pozadina bodyja = boja neba: iOS njome boji područje statusne trake. */
 body { margin: 0 auto; max-width: 520px; min-height: 100dvh; background: var(--sky); color: var(--ink);
   font: 400 17px/1.4 var(--body); display: flex; flex-direction: column; }
@@ -56,6 +58,12 @@ svg { display: block; }
 .meter i { display: block; height: 100%; background: var(--fill); border-radius: 99px; transition: width .5s; }
 .meter.dark { background: #00000014; margin: 12px 0 0; max-width: none; } .meter.dark i { background: var(--navy); }
 
+/* ---- Mali naslov (Put, Vježba, Knjige) ---- */
+.topbar { position: sticky; top: 0; z-index: 4; background: #fff; padding: calc(var(--top) + 12px) 20px 12px; text-align: center; }
+.topbar h1 { font: 700 17px/24px var(--body); }
+.sheet.flat { margin-top: 0; border-radius: 0; padding-top: 10px; }
+.sheet.flat > .note:first-child { margin: 0 0 6px; text-align: center; }
+
 /* ---- Sheet & kartice ---- */
 .sheet { position: relative; z-index: 1; flex: 1; background: #fff; border-radius: 28px 28px 0 0; margin-top: -28px; padding: 26px 20px calc(120px + var(--bot)); }
 .sheet h2 { font: 400 34px/1.1 var(--display); margin: 22px 0 14px; }
@@ -76,13 +84,10 @@ button.card:active { transform: scale(.98); }
 .note.ok { color: #235c12; background: #eef9c9; border-radius: 16px; padding: 12px 16px; margin: 0 0 12px; font-weight: 500; }
 
 /* ---- Put ---- */
-.sheet.path { padding-top: 20px; }
-.unit-head { position: sticky; top: calc(var(--top) + 8px); z-index: 3; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+.unit-head { position: sticky; top: calc(var(--top) + 50px); z-index: 3; display: flex; align-items: center; justify-content: space-between; gap: 12px;
   background: var(--tint); color: var(--navy); border-radius: 20px; padding: 13px 18px 14px; box-shadow: 0 5px 0 color-mix(in srgb, var(--tint), #1f2a44 22%); }
-.unit-head::before { content: ''; position: absolute; left: -20px; right: -20px; bottom: calc(100% - 1px); height: calc(var(--top) + 10px); background: #fff; }
 .unit-head small { display: block; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
 .unit-head b { display: block; font: 400 24px/1.15 var(--display); }
-.unit-head .stars i { color: #1f2a4433; } .unit-head .stars i.on { color: var(--navy); } .unit-head .stars .crown.on { color: #c78a00; }
 .trail { padding: 26px 0 30px; }
 .pn { position: relative; display: block; width: 100%; height: 100px; --c: #e8e8e8; --e: #cfcfcf; color: #a6a6a6; }
 .pn.big { height: 112px; }
@@ -106,13 +111,8 @@ button.card:active { transform: scale(.98); }
 .bub.wait { color: var(--blue); animation: none; }
 @keyframes bob { 50% { transform: translate(-50%, -5px); } }
 
-.stars { display: inline-flex; gap: 2px; align-items: center; }
-.stars i { width: 20px; color: #d6d6d6; } .stars i.on { color: #8a4f9e; }
-.stars .crown.on { color: #e0a400; }
-
 /* ---- Vježba / Knjige / Ti ---- */
 .prac { flex-direction: column; align-items: stretch; }
-.prac .stars { margin-top: 8px; }
 .acts { display: flex; gap: 8px; margin-top: 12px; }
 .pill { flex: 1; text-align: center; white-space: nowrap; border-radius: 99px; padding: 14px 10px; font-size: 16px; font-weight: 700; background: #fff; box-shadow: inset 0 0 0 1.5px var(--ink); }
 .pill.dark { background: var(--ink); color: #fff; }

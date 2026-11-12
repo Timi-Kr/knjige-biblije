@@ -1,6 +1,6 @@
 import { BOOKS, GROUPS, PATH, OT_END, names } from './data.js';
 import * as store from './store.js';
-import { IC, stars } from './icons.js';
+import { IC } from './icons.js';
 import {
   runSession, lessonSession, checkSession, reviewSession, challengeSession, practiceSession, typeSession,
 } from './exercises.js';
@@ -11,6 +11,8 @@ const toastEl = document.getElementById('toast');
 const sheetEl = document.getElementById('sheet');
 const themeMeta = document.querySelector('meta[name="theme-color"]');
 let tab = 'home';
+const PLAIN = ['path', 'practice', 'books']; // tabovi s malim naslovom umjesto obojanog zaglavlja
+const topbar = (title) => `<header class="topbar"><h1>${title}</h1></header>`;
 
 // Dan / noć: po danu svijetlo nebo sa suncem, navečer tamno s mjesecom.
 const forcedSky = new URLSearchParams(location.search).get('sky');
@@ -21,8 +23,10 @@ function isNight() {
 }
 function applySky() {
   const night = isNight();
-  document.documentElement.classList.toggle('night', night);
-  themeMeta.content = document.body.classList.contains('in-session') ? '#4a3550' : night ? '#1f2a44' : '#fdf0e1';
+  const plain = PLAIN.includes(tab);
+  document.documentElement.classList.toggle('night', night && !plain);
+  document.documentElement.classList.toggle('plain', plain);
+  themeMeta.content = document.body.classList.contains('in-session') ? '#4a3550' : plain ? '#ffffff' : night ? '#1f2a44' : '#fdf0e1';
   return night;
 }
 
@@ -145,11 +149,10 @@ function viewPath() {
         </button>`;
     }).join('');
     return `<section class="unit" style="--tint:${g.tint}">
-      <div class="unit-head"><div><small>Skupina ${gi + 1} · ${g.t === 'SZ' ? 'Stari zavjet' : 'Novi zavjet'}</small><b>${g.name}</b></div>${stars(store.groupMastery(g.id))}</div>
+      <div class="unit-head"><div><small>Skupina ${gi + 1} · ${g.t === 'SZ' ? 'Stari zavjet' : 'Novi zavjet'}</small><b>${g.name}</b></div></div>
       <div class="trail">${nodes}</div></section>`;
   }).join('');
-  const done = PATH.filter((n) => store.get().done[n.id]).length;
-  return hero('Put', `${done} od ${PATH.length} lekcija`) + `<main class="sheet path">${sections}</main>`;
+  return topbar('Put') + `<main class="sheet flat path">${sections}</main>`;
 }
 
 // ---------- Niz (bottom sheet) ----------
@@ -238,23 +241,23 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !sheetEl
 
 // ---------- Vježba ----------
 function viewPractice() {
-  const row = (title, sub, from, to, gid, m) => `
+  const row = (title, sub, from, to, gid) => `
     <div class="card prac">
-      <div class="txt"><b>${title}</b><span>${sub}</span>${m ? stars(m) : ''}</div>
+      <div class="txt"><b>${title}</b><span>${sub}</span></div>
       <div class="acts">
         <button class="pill" data-quiz="${from},${to}" data-title="${title}">Kviz</button>
         <button class="pill dark" data-type="${from},${to},${gid}" data-title="${title}">Upiši napamet</button>
       </div>
     </div>`;
-  return hero('Vježba', 'Slobodno, bez utjecaja na dnevni plan') + `
-  <main class="sheet">
+  return topbar('Vježba') + `
+  <main class="sheet flat">
+    <p class="note">Slobodna vježba, bez utjecaja na dnevni plan.</p>
     <h2>Velike cjeline</h2>
     ${row('Svih 66 knjiga', 'Postanak → Otkrivenje', 0, 66, '')}
     ${row('Stari zavjet', '39 knjiga', 0, OT_END, '')}
     ${row('Novi zavjet', '27 knjiga', OT_END, 66, '')}
     <h2>Po skupinama</h2>
-    <p class="note">Treća zvjezdica: upiši skupinu napamet bez pomoći. Kruna: ponovi to neki drugi dan.</p>
-    ${GROUPS.map((g) => row(g.name, `${BOOKS[g.start].name} → ${BOOKS[g.end - 1].name}`, g.start, g.end, g.id, store.groupMastery(g.id))).join('')}
+    ${GROUPS.map((g) => row(g.name, `${BOOKS[g.start].name} → ${BOOKS[g.end - 1].name}`, g.start, g.end, g.id)).join('')}
   </main>`;
 }
 
@@ -265,8 +268,8 @@ function viewBooks() {
     <section class="blist"><h3><i style="background:${g.tint}"></i>${g.name}</h3><ol>
       ${BOOKS.slice(g.start, g.end).map((b) => `<li class="${b.i < known ? 'known' : ''}"><span>${b.n}</span>${b.name}</li>`).join('')}
     </ol></section>`;
-  return hero('Knjige', 'Svih 66 po redu') + `
-  <main class="sheet">
+  return topbar('Knjige') + `
+  <main class="sheet flat">
     <h2>Stari zavjet</h2>${GROUPS.filter((g) => g.t === 'SZ').map(grp).join('')}
     <h2>Novi zavjet</h2>${GROUPS.filter((g) => g.t === 'NZ').map(grp).join('')}
   </main>`;
@@ -286,8 +289,6 @@ function viewMe() {
       ${stat(store.solidCount(), 'čvrsto znaš')}
       ${stat(`${done}/${PATH.length}`, 'lekcija')}
     </div>
-    <h2>Skupine</h2>
-    ${GROUPS.map((g) => `<div class="card mast">${stars(store.groupMastery(g.id))}<b>${g.name}</b></div>`).join('')}
     <h2>Postavke</h2>
     <label class="card toggle"><span class="txt"><b>Više lekcija dnevno</b><span>Bez čekanja do sutra na novu lekciju</span></span>
       <input type="checkbox" data-free ${s.settings.free ? 'checked' : ''}><i></i></label>
@@ -324,7 +325,7 @@ function start(session) {
       const r = store.finishSession(sess, outcome);
       let note = 'točno iz prve';
       if (sess.kind === 'type') {
-        note = outcome.perfect ? 'Sve upisano bez pomoći' : 'Pokušaj bez „Ne znam” za zvjezdicu';
+        note = outcome.perfect ? 'Sve upisano bez pomoći' : 'Pokušaj ponovno bez „Ne znam”';
       }
       const extra = r.streakUp ? '<p class="note ok">Dnevni plan je ispunjen!</p>' : '';
       return { streakUp: r.streakUp, streak: store.currentStreak(), note, extra };

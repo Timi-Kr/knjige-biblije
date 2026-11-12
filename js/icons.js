@@ -36,8 +36,3 @@ export const IC = {
   sun: `<svg viewBox="0 0 64 64" aria-hidden="true"><path fill="currentColor" d="${scallop(32, 32, 27, 8, 0.075)}"/></svg>`,
   logo: `<svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#1f2a44"/><rect x="8" y="12.500" width="7" height="19" rx="2.200" fill="#c8f03c"/><rect x="16.500" y="7" width="7" height="24.500" rx="2.200" fill="#f3bdfb"/><rect x="25" y="15.500" width="7" height="16" rx="2.200" fill="#fff"/></svg>`,
 };
-
-export const stars = (m) =>
-  `<span class="stars" aria-label="${m.stars} od 3 zvjezdice${m.crown ? ', kruna' : ''}">` +
-  [1, 2, 3].map((n) => `<i class="${m.stars >= n ? 'on' : ''}">${IC.star}</i>`).join('') +
-  `<i class="crown ${m.crown ? 'on' : ''}">${IC.crown}</i></span>`;
