@@ -22,7 +22,8 @@ html.night { --sky: var(--navy); --sky-ink: #fff; --cloud: #ffffff12; --orb: var
 html.night { color-scheme: dark; }
 html.plain { --sky: #fff; }
 /* Pozadina bodyja = boja neba: iOS njome boji područje statusne trake. */
-body { margin: 0 auto; max-width: 520px; min-height: 100dvh; background: var(--sky); color: var(--ink);
+html, body { height: 100%; }
+body { margin: 0 auto; max-width: 520px; overflow: hidden; background: var(--sky); color: var(--ink);
   font: 400 17px/1.4 var(--body); display: flex; flex-direction: column; }
 body.in-session { overflow: hidden; background: var(--plum); }
 body.sheet-open { overflow: hidden; }
@@ -31,7 +32,9 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--blue); outl
 h1, h2, h3, p, ol { margin: 0; }
 ol { padding: 0; list-style: none; }
 svg { display: block; }
-#app { flex: 1; display: flex; flex-direction: column; }
+/* Skrola #app, ne dokument: iOS svoje zamućenje uz statusnu traku veže za skrolanje dokumenta. */
+#app { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; background: var(--sky); }
+#app > * { flex-shrink: 0; }
 
 /* ---- Hero ---- */
 .hero { position: relative; background: var(--sky); color: var(--sky-ink); text-align: center; padding: calc(var(--top) + 18px) 22px 64px; }
@@ -59,13 +62,13 @@ svg { display: block; }
 .meter.dark { background: #00000014; margin: 12px 0 0; max-width: none; } .meter.dark i { background: var(--navy); }
 
 /* ---- Mali naslov (Put, Vježba, Knjige) ---- */
-.topbar { position: sticky; top: 0; z-index: 4; background: #fff; padding: calc(var(--top) + 12px) 20px 12px; text-align: center; }
+.topbar { position: sticky; top: 0; z-index: 4; background: #fff; padding: calc(var(--top) + 18px) 20px 12px; text-align: center; }
 .topbar h1 { font: 700 17px/24px var(--body); }
 .sheet.flat { margin-top: 0; border-radius: 0; padding-top: 10px; }
 .sheet.flat > .note:first-child { margin: 0 0 6px; text-align: center; }
 
 /* ---- Sheet & kartice ---- */
-.sheet { position: relative; z-index: 1; flex: 1; background: #fff; border-radius: 28px 28px 0 0; margin-top: -28px; padding: 26px 20px calc(120px + var(--bot)); }
+.sheet { position: relative; z-index: 1; flex: 1 0 auto; background: #fff; border-radius: 28px 28px 0 0; margin-top: -28px; padding: 26px 20px calc(120px + var(--bot)); }
 .sheet h2 { font: 400 34px/1.1 var(--display); margin: 22px 0 14px; }
 .sheet h2:first-child { margin-top: 4px; }
 .card { display: flex; align-items: center; gap: 12px; width: 100%; background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 12px; }
@@ -74,8 +77,10 @@ svg { display: block; }
 .card .txt > span { color: #333; }
 button.card:active { transform: scale(.98); }
 .task { min-height: 108px; }
-.task .art { width: 84px; flex: none; display: grid; place-items: center; }
-.task.done .art, .task.locked .art { width: 48px; height: 48px; border-radius: 50%; margin-right: 12px; }
+.task .ico { width: 40px; flex: none; margin-right: 4px; color: var(--navy); }
+.task.locked .ico { color: #a6a6a6; }
+.task .art { flex: none; display: grid; place-items: center; }
+.task.done .art, .task.locked .art { width: 48px; height: 48px; border-radius: 50%; }
 .task.done .art { background: var(--lime); } .task.done .art svg { width: 26px; }
 .task.locked .art { background: #e2e2e2; color: #8a8a8a; } .task.locked .art svg { width: 22px; }
 .task.locked b, .task.locked .txt > span { color: #8a8a8a; }
@@ -84,11 +89,12 @@ button.card:active { transform: scale(.98); }
 .note.ok { color: #235c12; background: #eef9c9; border-radius: 16px; padding: 12px 16px; margin: 0 0 12px; font-weight: 500; }
 
 /* ---- Put ---- */
-.unit-head { position: sticky; top: calc(var(--top) + 50px); z-index: 3; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+.unit-head { position: sticky; top: calc(var(--top) + 54px); z-index: 3; display: flex; align-items: center; justify-content: space-between; gap: 12px;
   background: var(--tint); color: var(--navy); border-radius: 20px; padding: 13px 18px 14px; box-shadow: 0 5px 0 color-mix(in srgb, var(--tint), #1f2a44 22%); }
 .unit-head small { display: block; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
 .unit-head b { display: block; font: 400 24px/1.15 var(--display); }
-.trail { padding: 26px 0 30px; }
+.unit { margin-bottom: 18px; }
+.trail { padding: 26px 0 14px; }
 .pn { position: relative; display: block; width: 100%; height: 100px; --c: #e8e8e8; --e: #cfcfcf; color: #a6a6a6; }
 .pn.big { height: 112px; }
 .coin { position: absolute; top: 12px; left: calc(50% + var(--x)); width: 74px; height: 66px; margin-left: -37px; border-radius: 50%; display: grid; place-items: center;

@@ -14,12 +14,11 @@ let tab = 'home';
 const PLAIN = ['path', 'practice', 'books']; // tabovi s malim naslovom umjesto obojanog zaglavlja
 const topbar = (title) => `<header class="topbar"><h1>${title}</h1></header>`;
 
-// Dan / noć: po danu svijetlo nebo sa suncem, navečer tamno s mjesecom.
+// Dan / noć prati postavku sustava: svijetli način = sunce, tamni način = mjesec.
+const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
 const forcedSky = new URLSearchParams(location.search).get('sky');
 function isNight() {
-  if (forcedSky) return forcedSky === 'night';
-  const h = new Date().getHours();
-  return h >= 19 || h < 6;
+  return forcedSky ? forcedSky === 'night' : darkQuery.matches;
 }
 function applySky() {
   const night = isNight();
@@ -83,10 +82,11 @@ function viewHome() {
     ? { title: 'Level Up', sub: 'Redni brojevi i tipkanje napamet', act: 'challenge' }
     : { title: 'Level Up', sub: 'Otključava se nakon druge lekcije', act: '', locked: true };
 
-  const card = (t, done, art) => `
+  const card = (t, done, icon) => `
     <button class="card task ${done ? 'done' : ''} ${t.locked ? 'locked' : ''}" data-act="${t.act}" ${t.act ? '' : 'aria-disabled="true"'}>
+      <span class="ico">${icon}</span>
       <span class="txt"><b>${t.title}</b><span>${t.sub}</span></span>
-      <span class="art ${art}">${done ? IC.check : t.locked ? IC.lock : artSvg[art]}</span>
+      ${done || t.locked ? `<span class="art">${done ? IC.check : IC.lock}</span>` : ''}
     </button>`;
 
   const g = nx ? GROUPS.find((x) => x.id === nx.g) : GROUPS[GROUPS.length - 1];
@@ -107,9 +107,9 @@ function viewHome() {
   <main class="sheet">
     <h2>Danas</h2>
     ${all ? '<p class="note ok">Dnevni plan je ispunjen. Vidimo se sutra!</p>' : ''}
-    ${card(lesson, tasks.lesson.done, 'a-lesson')}
-    ${card(review, tasks.review.done, 'a-review')}
-    ${card(challenge, tasks.challenge.done, 'a-level')}
+    ${card(lesson, tasks.lesson.done, IC.spark)}
+    ${card(review, tasks.review.done, IC.star5)}
+    ${card(challenge, tasks.challenge.done, IC.crownO)}
     <h2>Nastavi</h2>
     <button class="card cont" data-tab="path" style="--tint:${g.tint}">
       <span class="txt"><b>${g.name}</b><span>${gKnown} od ${knjiga(g.end - g.start)}</span>
@@ -123,12 +123,6 @@ const SCENE = `<svg class="scene" viewBox="0 0 390 110" preserveAspectRatio="xMi
   <g class="cloud" stroke-width="15" stroke-linecap="round"><path d="M88 22h36M34 50h70M20 76h10M58 76h44"/><path d="M294 24h66M318 50h44M278 50h10M308 74h14"/></g>
   <g class="stars"><circle cx="150" cy="16" r="2"/><circle cx="248" cy="30" r="1.600"/><circle cx="132" cy="84" r="1.600"/><circle cx="262" cy="88" r="2"/><circle cx="200" cy="4" r="1.400"/></g>
 </svg>`;
-
-const artSvg = {
-  'a-lesson': `<svg viewBox="0 0 80 60" aria-hidden="true"><rect x="8" y="14" width="16" height="40" rx="4" fill="#c8f03c"/><rect x="28" y="6" width="16" height="48" rx="4" fill="#f3bdfb"/><rect x="48" y="20" width="16" height="34" rx="4" fill="#1f2a44"/></svg>`,
-  'a-review': `<svg viewBox="0 0 80 60" aria-hidden="true"><circle cx="28" cy="32" r="20" fill="#c8f03c"/><path d="M19 32q4 5 8 0M31 32q4 5 8 0" stroke="#1f2a44" stroke-width="2.500" fill="none" stroke-linecap="round"/><rect x="48" y="30" width="26" height="22" rx="6" fill="#0f8a96"/><path d="M54 40h5M63 40h5" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>`,
-  'a-level': `<svg viewBox="0 0 80 60" aria-hidden="true"><path d="M12 44 30 22l16 18 18-22" stroke="#cfcfcf" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="1 7"/><circle cx="12" cy="44" r="9" fill="#f3bdfb"/><circle cx="30" cy="22" r="7" fill="#d9d9d9"/><circle cx="46" cy="40" r="7" fill="#d9d9d9"/><circle cx="64" cy="18" r="7" fill="#d9d9d9"/></svg>`,
-};
 
 // ---------- Put ----------
 const WAVE = [0, 40, 62, 40, 0, -40, -62, -40];
@@ -299,7 +293,7 @@ function viewMe() {
 const VIEWS = { home: viewHome, path: viewPath, practice: viewPractice, books: viewBooks, me: viewMe };
 
 function render(keepScroll = false) {
-  const y = window.scrollY;
+  const y = app.scrollTop;
   applySky();
   app.innerHTML = VIEWS[tab]();
   if (!tabsEl.children.length) {
@@ -312,8 +306,8 @@ function render(keepScroll = false) {
     b.classList.toggle('on', on);
     if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   }
-  if (keepScroll) return window.scrollTo(0, y);
-  window.scrollTo(0, 0);
+  app.scrollTop = keepScroll ? y : 0;
+  if (keepScroll) return;
   if (tab === 'path') app.querySelector('.pn.open, .pn.tomorrow')?.scrollIntoView({ block: 'center' });
 }
 
@@ -369,6 +363,9 @@ document.addEventListener('click', (e) => {
 });
 document.addEventListener('change', (e) => {
   if (e.target.matches('[data-free]')) store.setFree(e.target.checked);
+});
+darkQuery.addEventListener('change', () => {
+  if (document.getElementById('session').hidden) render(true); else applySky();
 });
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden && document.getElementById('session').hidden) render(true);

@@ -25,6 +25,8 @@ export const IC = {
   play: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.500v13a1 1 0 0 0 1.500.86l10.500-6.500a1 1 0 0 0 0-1.720L9.500 4.640A1 1 0 0 0 8 5.500z"/></svg>`,
   flame: `<svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><path d="M11.800 1.700Q12.200 1.350 12.600 1.700C14 3.200 15.600 4.200 17.200 5.200 20.200 7 21.800 9.800 21.800 13A9.800 9.800 0 0 1 2.200 13C2.200 10.400 3.400 8 5.300 6.300Q5.800 5.900 6.200 6.400L8.300 8.400C8.900 5.600 10.200 3.300 11.800 1.700ZM12.950 10.600A4.100 4.100 0 1 1 8.250 13.700L10.600 14.350Z"/></svg>`,
   book: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 6.200C8.900 4.900 6.200 4.500 3.300 5A1 1 0 0 0 2.500 6v11.300a1 1 0 0 0 1.200 1c2.600-.5 5-.1 7.300 1.300zM13 6.200c2.100-1.300 4.800-1.700 7.700-1.200a1 1 0 0 1 .8 1v11.300a1 1 0 0 1-1.200 1c-2.600-.5-5-.1-7.300 1.300z"/></svg>`,
+  star5: s('<path d="M12.00 2.70L14.70 8.58L21.13 9.33L16.37 13.72L17.64 20.07L12.00 16.90L6.36 20.07L7.63 13.72L2.87 9.33L9.30 8.58Z"/>', 'stroke-width="1.800"'),
+  crownO: s('<path d="M4.500 9.500 8.500 13 12 7l3.500 6 4-3.500-1.300 9.500H5.800z"/><circle cx="4.300" cy="7" r=".9" fill="currentColor"/><circle cx="12" cy="4.300" r=".9" fill="currentColor"/><circle cx="19.700" cy="7" r=".9" fill="currentColor"/>', 'stroke-width="1.800"'),
   left: s('<path d="m14.500 5-7 7 7 7"/>', 'stroke-width="2.600"'),
   right: s('<path d="m9.500 5 7 7-7 7"/>', 'stroke-width="2.600"'),
   medal: s('<circle cx="12" cy="15" r="5.500"/><path d="M8 4h8l-1.500 5.500h-5z"/>'),
